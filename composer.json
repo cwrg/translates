@@ -1,0 +1,20 @@
+{
+    "name": "cwrg/translates",
+    "description": "Translate",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Cwrg\\Translates\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cwrg",
+            "email": "465664999@qq.com"
+        }
+    ],
+    "require": {
+        "ext-curl": "*",
+        "ext-json": "*"
+    }
+}
