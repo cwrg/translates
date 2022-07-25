@@ -2,29 +2,35 @@
 
 namespace Cwrg\Translates\Translate;
 
-
+/**
+ * @mixin BaiduTranslate 百度翻译
+ */
 class BaiduTranslate extends AbTranslate
 {
     /**
      * @var string
      */
-    protected $host = 'api.fanyi.baidu.com';
+    protected $host = 'http://api.fanyi.baidu.com';
 
     /**
      * 翻译
+     * @param $text
      * @return string
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function translate($content = '')
+    public function translate($text = '')
     {
-        $salt = rand(10000, 99999);
-        $sign = $this->sign($salt, $content);
-        $url = "http://{$this->host}/api/trans/vip/translate?q={$content}&appid={$this->config['appid']}&salt={$salt}&from={$this->source}&to={$this->target}&sign={$sign}";
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        $result = curl_exec($ch);
-        curl_close($ch);
+        $response = $this->client->get('/api/trans/vip/translate', [
+            'query' => [
+                'q' => $text,
+                'appid' => $this->config['appid'],
+                'salt' => $salt = rand(10000, 99999),
+                'from' => $this->source,
+                'to' => $this->target,
+                'sign' => $this->sign($salt, $text)
+            ]
+        ]);
+        $result = $response->getBody()->getContents();
         $sentencesArray = json_decode($result, true);
         if (!isset($sentencesArray['trans_result'])) {
             throw new \RuntimeException($result);

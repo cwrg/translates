@@ -5,6 +5,9 @@ namespace Cwrg\Translates;
 use Cwrg\Translates\Translate\BaiduTranslate;
 use Cwrg\Translates\Translate\GoogleTranslate;
 
+/**
+ * @mixin Translate 翻译
+ */
 class Translate
 {
     /**

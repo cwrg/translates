@@ -2,6 +2,11 @@
 
 namespace Cwrg\Translates\Translate;
 
+use GuzzleHttp\Client;
+
+/**
+ * @mixin AbTranslate
+ */
 abstract class AbTranslate
 {
     /**
@@ -20,6 +25,10 @@ abstract class AbTranslate
      * @var string 源语言
      */
     protected $source;
+    /**
+     * @var Client 请求客户端
+     */
+    protected $client;
 
     /**
      * 初始化
@@ -28,14 +37,17 @@ abstract class AbTranslate
     public function __construct($config = [])
     {
         $this->config = $config;
-        isset($this->config['host']) && $this->host = $this->config['host'];
+        $this->client = new Client([
+            'base_uri' => isset($this->config['host']) ? $this->config['host'] : $this->host,
+            'verify' => false
+        ]);
     }
 
     /**
      * 翻译
      * @return mixed
      */
-    abstract protected function translate($content = '');
+    abstract protected function translate($text = '');
 
     /**
      * 目标语言
@@ -59,14 +71,4 @@ abstract class AbTranslate
         return $this;
     }
 
-    /**
-     * 翻译文字
-     * @param $text
-     * @return $this
-     */
-    public function text($text = '')
-    {
-        $this->text = $text;
-        return $this;
-    }
 }
