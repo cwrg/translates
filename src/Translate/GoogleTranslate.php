@@ -13,11 +13,15 @@ class GoogleTranslate extends AbTranslate
     /**
      * @var string
      */
-    protected $host = 'https://translate.google.cn';
+    protected $host = 'https://translate.google.com';
     /**
      * @var GoogleTokenGenerator
      */
     protected $tokenProvider;
+    /**
+     * @var string|null Last detected source language
+     */
+    protected $lastDetectedSource;
     /**
      * @var array URL Parameters
      */
@@ -74,16 +78,69 @@ class GoogleTranslate extends AbTranslate
             'tk' => $this->tokenProvider->generateToken($this->source, $this->target, $text),
             'q' => $text
         ]);
-        $response = $this->client->get('translate_a/single', ['query' => $query]);
+        $response = $this->client->get('translate_a/single', [
+            'query' => preg_replace('/%5B(?:[0-9]|[1-9][0-9]+)%5D=/', '=', http_build_query($query))
+        ]);
         $result = $response->getBody()->getContents();
-        $sentencesArray = json_decode($result, true);
-        $sentences = "";
-        if (!isset($sentencesArray["sentences"])) {
-            throw new \RuntimeException($result);
+        $responseArray = json_decode($result, true);
+        if (is_string($responseArray) && $responseArray != '') {
+            $responseArray = [$responseArray];
         }
-        foreach ($sentencesArray["sentences"] as $s) {
-            $sentences .= isset($s["trans"]) ? $s["trans"] : '';
+        // Check if translation exists
+        if (empty($responseArray[0])) {
+            return null;
         }
-        return $sentences;
+        // Detect languages
+        $detectedLanguages = [];
+
+        // the response contains only single translation, don't create loop that will end with
+        // invalid foreach and warning
+        if (!is_string($responseArray)) {
+            foreach ($responseArray as $item) {
+                if (is_string($item)) {
+                    $detectedLanguages[] = $item;
+                }
+            }
+        }
+
+        // Another case of detected language
+        if (isset($responseArray[count($responseArray) - 2][0][0])) {
+            $detectedLanguages[] = $responseArray[count($responseArray) - 2][0][0];
+        }
+        // Set initial detected language to null
+        $this->lastDetectedSource = null;
+
+        // Iterate and set last detected language
+        foreach ($detectedLanguages as $lang) {
+            if ($this->isValidLocale($lang)) {
+                $this->lastDetectedSource = $lang;
+                break;
+            }
+        }
+
+        // the response can be sometimes an translated string.
+        if (is_string($responseArray)) {
+            return $responseArray;
+        } else {
+            if (is_array($responseArray[0])) {
+                return (string)array_reduce($responseArray[0], function ($carry, $item) {
+                    $carry .= $item[0];
+                    return $carry;
+                });
+            } else {
+                return (string)$responseArray[0];
+            }
+        }
+    }
+
+    /**
+     * Check if given locale is valid.
+     *
+     * @param string $lang Langauge code to verify
+     * @return bool
+     */
+    protected function isValidLocale(string $lang)
+    {
+        return (bool)preg_match('/^([a-z]{2})(-[A-Z]{2})?$/', $lang);
     }
 }
