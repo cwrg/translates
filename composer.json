@@ -2,6 +2,7 @@
     "name": "cwrg/translates",
     "description": "Translate",
     "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Cwrg\\Translates\\": "src/"
