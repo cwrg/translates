@@ -2,6 +2,8 @@
 
 namespace Cwrg\Translates\Translate;
 
+use Cwrg\Translates\Translate\Exceptions\Exception;
+
 /**
  * @mixin BaiduTranslate 百度翻译
  */
@@ -33,7 +35,7 @@ class BaiduTranslate extends AbTranslate
         $result = $response->getBody()->getContents();
         $sentencesArray = json_decode($result, true);
         if (!isset($sentencesArray['trans_result'])) {
-            throw new \RuntimeException($result);
+            throw new Exception($result);
         }
         $sentences = "";
         foreach ($sentencesArray['trans_result'] as $v) {

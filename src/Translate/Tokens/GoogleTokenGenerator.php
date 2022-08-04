@@ -5,8 +5,8 @@ namespace Cwrg\Translates\Translate\Tokens;
 /**
  * Google Token Generator.
  *
- * Thanks to @helen5106 and @tehmaestro and few other cool guys
- * at https://github.com/Stichoza/google-translate-php/issues/32
+ * Author:@Stichoza
+ * Github:https://github.com/Stichoza/google-translate-php
  */
 class GoogleTokenGenerator
 {
